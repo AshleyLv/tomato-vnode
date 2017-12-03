@@ -1,8 +1,9 @@
 export default class VNode {
 	
-		constructor (tag, nodeType, props, text, children){
+		constructor (tag, nodeType, key, props, text, children){
 			this.tag = tag
 			this.nodeType = nodeType
+			this.key = key
 			this.props = props
 			this.text = text
 			this.children = children
