@@ -1,41 +1,35 @@
-import {isSomeTypeNode} from './util'
+import {isSomeTypeNode,TEXT,PROP,MOVE,INSERT,REMOVE} from './util'
 import vnode from './vnode'
 
-const TEXT = 1
-const PROP = 2
-const MOVE = 3
-const INSERT = 4
-const REMOVE = 5
-
+var directives = {}
 
 export default function diff(oldVNode, newVNode){
     let index = 0
-    let directives = []
     diffVNode(oldVNode,newVNode,directives)
     console.log(directives)
     return directives
 
 }
 
-function diffVNode(oldVNode,newVNode,directives){
-    var patch = []
+function diffVNode(oldVNode,newVNode){
 
     if(newVNode && isSomeTypeNode(oldVNode,newVNode)){
         if(newVNode.nodeType===3 || newVNode.nodeType===8){
             if(oldVNode.text !== newVNode.text){
-                directives.push({type:TEXT, content: newVNode,key:newVNode.key})
+                addDirectives(newVNode.key,{type:TEXT, content: newVNode})
             }
         } else if(newVNode.nodeType===1){
             if(oldVNode.tag === newVNode.tag && oldVNode.key == newVNode.key){
                 var propPatches = diffProps(oldVNode.props, newVNode.props)
                 if(Object.keys(propPatches).length>0){
-                    directives.push({type:PROP, content: propPatches,key:newVNode.key})
+                    addDirectives(newVNode.key,{type:PROP, content: propPatches})
                 }
                 if(oldVNode.children || newVNode.children)
-                    diffChildren(oldVNode.children,newVNode.children,directives)
+                    diffChildren(oldVNode.children,newVNode.children,newVNode.key)
             }
         }
     }
+    return directives
 }
 
 function diffProps(oldProps,newProps){
@@ -73,7 +67,7 @@ function diffProps(oldProps,newProps){
     return patches
 }
 
-function diffChildren(oldChildren,newChildren,directives){
+function diffChildren(oldChildren,newChildren,parentKey){
     oldChildren = oldChildren || []
     newChildren = newChildren || []
     let oldKeyIndexObject = parseNodeList(oldChildren)
@@ -84,20 +78,18 @@ function diffChildren(oldChildren,newChildren,directives){
             if(oldKeyIndexObject[key] !== newKeyIndexObject[key]){
                 let moveObj = {'oldIndex':oldKeyIndexObject[key],'newIndex':newKeyIndexObject[key],'node':newChildren[newKeyIndexObject[key]]}
                 sameItems.push(moveObj)
-                
-                directives.push({type:MOVE, node:moveObj})
+                addDirectives(parentKey,{type:MOVE, node:moveObj})
             }
-            diffVNode(oldChildren[oldKeyIndexObject[key]],newChildren[newKeyIndexObject[key]],directives)
+            diffVNode(oldChildren[oldKeyIndexObject[key]],newChildren[newKeyIndexObject[key]])
         } else {
-            directives.push({type:REMOVE,index:oldKeyIndexObject[key],key:key})
+            addDirectives(key,{type:REMOVE,index:oldKeyIndexObject[key]})
         }
     }
     for(let key in newKeyIndexObject){
         if(!oldKeyIndexObject.hasOwnProperty(key)){
-            directives.push({type:INSERT,index:newKeyIndexObject[key],node:newChildren[newKeyIndexObject[key]]})
+            addDirectives(parentKey,{type:INSERT,index:newKeyIndexObject[key],node:newChildren[newKeyIndexObject[key]]})
         }
     }
-
 }
 
 function parseNodeList(nodeList){
@@ -111,19 +103,20 @@ function parseNodeList(nodeList){
     return keyIndex
 
 }
-/*test1 
-test2,test3,test5
-test2--test8,test3-test10
 
+function addDirectives(key, obj){
+    directives[key] = directives[key] || []
+    directives[key].push(obj)
+}
+/*
+test1 
+test5,test7
+test5--test6
 test1
-test6,test2,test7,test3
-test2--test8,test7-test9,test3-test9
-
+test5,test8,test7
+test5--test6
 test1:prop
-test2 move,test3-remove,test5-remove,test6-insert,test7-insert
-test8--prop,test10-remove,test9-insert
-
-
-
+test5 prop,test6-prop,test7-move,test7-prop
+test8--insert
 
 */

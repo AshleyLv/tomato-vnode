@@ -1,6 +1,6 @@
 export default class VNode {
 	
-		constructor (tag, nodeType, key, props, text, children){
+		constructor (tag, nodeType,key, props, text, children){
 			this.tag = tag
 			this.nodeType = nodeType
 			this.key = key
@@ -27,6 +27,7 @@ export default class VNode {
 			} else if(this.nodeType===8){
 				el = document.createComment(this.text)
 			}
+			el.key = this.key
 			return el
 	
 		}
