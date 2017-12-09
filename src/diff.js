@@ -16,7 +16,7 @@ function diffVNode(oldVNode,newVNode){
     if(newVNode && isSomeTypeNode(oldVNode,newVNode)){
         if(newVNode.nodeType===3 || newVNode.nodeType===8){
             if(oldVNode.text !== newVNode.text){
-                addDirectives(newVNode.key,{type:TEXT, content: newVNode})
+                addDirectives(newVNode.key,{type:TEXT, content: newVNode.text})
             }
         } else if(newVNode.nodeType===1){
             if(oldVNode.tag === newVNode.tag && oldVNode.key == newVNode.key){
@@ -73,6 +73,11 @@ function diffChildren(oldChildren,newChildren,parentKey){
     let oldKeyIndexObject = parseNodeList(oldChildren)
     let newKeyIndexObject = parseNodeList(newChildren)
     let sameItems = []
+    for(let key in newKeyIndexObject){
+        if(!oldKeyIndexObject.hasOwnProperty(key)){
+            addDirectives(parentKey,{type:INSERT,index:newKeyIndexObject[key],node:newChildren[newKeyIndexObject[key]]})
+        }
+    }
     for(let key in oldKeyIndexObject){
         if(newKeyIndexObject.hasOwnProperty(key)){
             if(oldKeyIndexObject[key] !== newKeyIndexObject[key]){
@@ -85,11 +90,7 @@ function diffChildren(oldChildren,newChildren,parentKey){
             addDirectives(key,{type:REMOVE,index:oldKeyIndexObject[key]})
         }
     }
-    for(let key in newKeyIndexObject){
-        if(!oldKeyIndexObject.hasOwnProperty(key)){
-            addDirectives(parentKey,{type:INSERT,index:newKeyIndexObject[key],node:newChildren[newKeyIndexObject[key]]})
-        }
-    }
+    
 }
 
 function parseNodeList(nodeList){
@@ -106,6 +107,9 @@ function parseNodeList(nodeList){
 
 function addDirectives(key, obj){
     directives[key] = directives[key] || []
+    if(obj.type===MOVE){
+        
+    }
     directives[key].push(obj)
 }
 /*
