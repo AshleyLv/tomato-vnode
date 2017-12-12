@@ -31,7 +31,7 @@ function applyPatch(node, directives){
 			case INSERT:
 				insertNode(node,directive.node,directive.index)
 			default:
-			console.log('current node------' + node.key + '----' + MOVE)
+				break
 		}
 		
 	}
@@ -71,11 +71,16 @@ function insertNode(parentNode,newNode,index){
 		parentNode.appendChild(newElm)
 	}
 }
-function reorderChildren(node,key,newIndex){
-
+function reorderChildren(node,directive){
+	let childElm = node.childNodes
+	for(let index in directive.moved){
+		if(directive.moved[index]){
+			if(index < node.childNodes.length){
+				node.insertBefore(node.childNodes[index],node.childNodes[directive.moved[index]])
+			} else {
+				node.appendChild(node.childNodes[index])
+			}
+			
+		}
+	}
 }
-//test1 -- props test7--move3-1 test8--insert
-//test5 test7
-//test5 1-1, test7 3-2, test8 3
-//5 7
-//8 5 7

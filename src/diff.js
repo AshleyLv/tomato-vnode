@@ -53,7 +53,6 @@ function diffProps(oldProps,newProps){
             }
             if(!isSame)
                 patches[prop] = newProps[prop]
-            
         }
         if(newProps[prop] !== oldProps[prop]){
             patches[prop] = newProps[prop]
@@ -70,9 +69,9 @@ function diffProps(oldProps,newProps){
 function diffChildren(oldChildren,newChildren,parentKey){
     oldChildren = oldChildren || []
     newChildren = newChildren || []
+    let movedItem = []
     let oldKeyIndexObject = parseNodeList(oldChildren)
     let newKeyIndexObject = parseNodeList(newChildren)
-    let sameItems = []
     for(let key in newKeyIndexObject){
         if(!oldKeyIndexObject.hasOwnProperty(key)){
             addDirectives(parentKey,{type:INSERT,index:newKeyIndexObject[key],node:newChildren[newKeyIndexObject[key]]})
@@ -81,14 +80,16 @@ function diffChildren(oldChildren,newChildren,parentKey){
     for(let key in oldKeyIndexObject){
         if(newKeyIndexObject.hasOwnProperty(key)){
             if(oldKeyIndexObject[key] !== newKeyIndexObject[key]){
-                let moveObj = {'oldIndex':oldKeyIndexObject[key],'newIndex':newKeyIndexObject[key],'node':newChildren[newKeyIndexObject[key]]}
-                sameItems.push(moveObj)
-                addDirectives(parentKey,{type:MOVE, node:moveObj})
+                let moveObj = {'oldIndex':oldKeyIndexObject[key],'newIndex':newKeyIndexObject[key]}
+                movedItem[newKeyIndexObject[key]] = oldKeyIndexObject[key]
             }
             diffVNode(oldChildren[oldKeyIndexObject[key]],newChildren[newKeyIndexObject[key]])
         } else {
             addDirectives(key,{type:REMOVE,index:oldKeyIndexObject[key]})
         }
+    }
+    if(movedItem.length>0){
+        addDirectives(parentKey,{type:MOVE, moved:movedItem})
     }
     
 }
@@ -107,20 +108,5 @@ function parseNodeList(nodeList){
 
 function addDirectives(key, obj){
     directives[key] = directives[key] || []
-    if(obj.type===MOVE){
-        
-    }
     directives[key].push(obj)
 }
-/*
-test1 
-test5,test7
-test5--test6
-test1
-test5,test8,test7
-test5--test6
-test1:prop
-test5 prop,test6-prop,test7-move,test7-prop
-test8--insert
-
-*/
