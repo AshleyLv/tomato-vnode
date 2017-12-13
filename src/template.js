@@ -8,24 +8,32 @@ export default function processTemplate(nodeId){
 }
 
 function generateVNode(node){
-	let attrObj = null
-	if(node.nodeType===1){
-		attrObj = {}
-		for(let attr of node.getAttributeNames()){
-			if(node.getAttribute(attr)){
-				attrObj[attr] = node.getAttribute(attr)
+	if(node && node.nodeType){
+		let attrObj = null
+		if(node.nodeType===1){
+			attrObj = {}
+			for(let attr of node.getAttributeNames()){
+				if(node.getAttribute(attr)){
+					attrObj[attr] = node.getAttribute(attr)
+				}
 			}
 		}
-	}
-	let content = (node.nodeType===3||node.nodeType===8)?node.textContent:null
-	if(node.childNodes && node.childNodes.length>0){
-		var childVNodesList = []
-		for(let i in node.childNodes){
-			childVNodesList.push(generateVNode(node.childNodes[i]))
+		let content = (node.nodeType===3||node.nodeType===8)?node.textContent:null
+		if(node.childNodes && node.childNodes.length>0){
+			var childVNodesList = []
+			for(let i in node.childNodes){
+				let chVNode =generateVNode(node.childNodes[i])
+				if(chVNode){
+					childVNodesList.push(chVNode)
+				}
+			}
 		}
+
+		return new VNode(node.tagName, node.nodeType,node.key || generateNodeKey(),attrObj,content,childVNodesList)
+	} else {
+		return null
 	}
 
-	return new VNode(node.tagName, node.nodeType,node.key || generateNodeKey(),attrObj,content,childVNodesList)
 }
 
 

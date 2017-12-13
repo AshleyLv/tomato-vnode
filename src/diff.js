@@ -5,6 +5,7 @@ var directives = {}
 
 export default function diff(oldVNode, newVNode){
     let index = 0
+    directives = {}
     diffVNode(oldVNode,newVNode,directives)
     console.log(directives)
     return directives
@@ -34,35 +35,39 @@ function diffVNode(oldVNode,newVNode){
 
 function diffProps(oldProps,newProps){
     let patches={}
-
-    Object.keys(oldProps).forEach((prop)=>{
-        if(prop === 'style' && newProps[prop]){
-            let newStyle = newProps[prop]
-            let isSame = true
-            Object.keys(oldProps[prop]).forEach((item)=>{
-                if(prop[item] !== newStyle[item]){
-                    isSame = false
-                }
-            })
-            if(isSame){
-                Object.keys(newStyle).forEach((item)=>{
-                    if(!prop.hasOwnProperty(item)){
+    if(oldProps){
+        Object.keys(oldProps).forEach((prop)=>{
+            if(prop === 'style' && newProps[prop]){
+                let newStyle = newProps[prop]
+                let isSame = true
+                Object.keys(oldProps[prop]).forEach((item)=>{
+                    if(prop[item] !== newStyle[item]){
                         isSame = false
                     }
                 })
+                if(isSame){
+                    Object.keys(newStyle).forEach((item)=>{
+                        if(!prop.hasOwnProperty(item)){
+                            isSame = false
+                        }
+                    })
+                }
+                if(!isSame)
+                    patches[prop] = newProps[prop]
             }
-            if(!isSame)
+            if(newProps[prop] !== oldProps[prop]){
                 patches[prop] = newProps[prop]
-        }
-        if(newProps[prop] !== oldProps[prop]){
-            patches[prop] = newProps[prop]
-        }
-    })
-    Object.keys(newProps).forEach((prop)=>{
+            }
+        })
+    }
+    if(newProps){
+       Object.keys(newProps).forEach((prop)=>{
         if(!oldProps.hasOwnProperty(prop)){
             patches[prop] = newProps[prop]
         }
     })
+   }
+   
     return patches
 }
 
